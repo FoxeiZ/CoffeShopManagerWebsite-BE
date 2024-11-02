@@ -1,21 +1,56 @@
 import mongoose, { Schema } from "mongoose";
 
-// const mongoose = require("mongoose");
-// const Schema = mongoose.Schema;
+interface IAccount {
+    email: string;
+    password: string;
+    name: string;
+    role: string;
+    avatarPath: string;
+    isVerified: boolean;
+    isActive: boolean;
+    isFirstTime: boolean;
+    createdAt: Date;
+}
 
-const AccountSchema = new Schema({
+const AccountSchema = new Schema<IAccount>({
     email: {
         type: String,
         unique: true,
+        required: true,
     },
-    password: String,
-    name: String,
-    role: String,
-    avatarPath: String,
-    isVerified: Boolean,
-    isActive: Boolean,
-    isFirstTime: Boolean,
-    createdAt: { type: Date, default: Date.now },
+    password: {
+        type: String,
+        required: true,
+    },
+    name: {
+        type: String,
+        required: true,
+    },
+    role: {
+        type: String,
+        required: true,
+    },
+    avatarPath: {
+        type: String,
+        required: true,
+    },
+    isVerified: {
+        type: Boolean,
+        required: true,
+    },
+    isActive: {
+        type: Boolean,
+        required: true,
+    },
+    isFirstTime: {
+        type: Boolean,
+        required: true,
+    },
+    createdAt: {
+        type: Date,
+        required: true,
+        default: Date.now,
+    },
 });
 
-export default mongoose.model("Account", AccountSchema);
+export default mongoose.model<IAccount>("Account", AccountSchema);

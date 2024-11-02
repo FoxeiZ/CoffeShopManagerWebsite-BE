@@ -31,6 +31,89 @@ const PasswordsNotMatch = new BaseAuthError("Passwords do not match", 400);
 const EmailNotValid = new BaseAuthError("Email not valid", 400);
 const TOSNotAccepted = new BaseAuthError("Please accept TOS", 400);
 
+/**
+ * @swagger
+ * /auth:
+ *   get:
+ *     summary: Get auth service status
+ *     description: Get auth service status
+ *     responses:
+ *       200:
+ *         description: Auth service is up and running
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Auth service is up and running
+ */
+AuthRouter.get("/", (req: Request, res: Response) => {
+    res.status(200).json({
+        result: "success",
+        message: "Auth service is up and running",
+    });
+});
+
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Register a new account
+ *     description: Create a new user account with the provided information.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               email:
+ *                 type: string
+ *                 example: johndoe@example.com
+ *               password:
+ *                 type: string
+ *                 example: password123
+ *               confirmPassword:
+ *                 type: string
+ *                 example: password123
+ *               confirmTOS:
+ *                 type: boolean
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Account created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Account created
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ */
 AuthRouter.post("/register", (req: Request, res: Response) => {
     const { name, email, password, confirmPassword, confirmTOS } = req.body;
     AccountModel.findOne({ email })
@@ -97,10 +180,103 @@ interface LoginResponse {
 }
 
 const AccountNotFound = new BaseAuthError("Account not found", 404);
-const AccountNotVerified = new BaseAuthError("Account not verified", 403);
+const AccountForbidden = new BaseAuthError(
+    "Account not verified or Account is disabled",
+    403
+);
 const WrongPassword = new BaseAuthError("Wrong password", 401);
-const AccountIsDisabled = new BaseAuthError("Account is disabled", 403);
 
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Login to an account
+ *     description: Authenticate the user with the provided email and password.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: johndoe@example.com
+ *               password:
+ *                 type: string
+ *                 example: password123
+ *     responses:
+ *       200:
+ *         description: Login success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Login success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     token:
+ *                       type: string
+ *                       example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized, wrong password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Wrong password
+ *       403:
+ *         description: Forbidden, account not verified or disabled
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Account not verified or Account is disabled
+ *       404:
+ *         description: Account not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Account not found
+ */
 AuthRouter.post("/login", (req: Request, res: Response) => {
     const { email, password } = req.body;
 
@@ -111,7 +287,7 @@ AuthRouter.post("/login", (req: Request, res: Response) => {
             }
 
             if (!account.isVerified) {
-                throw AccountNotVerified;
+                throw AccountForbidden;
             }
 
             if (account.password === undefined || account.password === null) {
@@ -124,7 +300,7 @@ AuthRouter.post("/login", (req: Request, res: Response) => {
             }
 
             if (!account.isActive) {
-                throw AccountIsDisabled;
+                throw AccountForbidden;
             }
 
             const JWT_SECRET = process.env.JWT_SECRET;

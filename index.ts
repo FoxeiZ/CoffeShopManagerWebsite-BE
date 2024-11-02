@@ -1,4 +1,7 @@
 import express, { Express, Request, Response } from "express";
+import bodyParser from "body-parser";
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
@@ -8,6 +11,7 @@ import AuthRoutes from "./routes/AuthRoutes";
 dotenv.config();
 
 const app: Express = express();
+
 // env
 const dbUser = process.env.DB_USER || "";
 const dbPassword = process.env.DB_PASSWORD || "";
@@ -17,6 +21,26 @@ const hostname = process.env.DB_HOSTNAME || "";
 const port = process.env.PORT || 8000;
 
 // setup phase
+const specs = swaggerJsdoc({
+    definition: {
+        openapi: "3.0.0",
+        info: {
+            title: "Coffeeshop Manager API",
+            version: "1.0.0",
+        },
+    },
+    servers: [
+        {
+            url: `http://localhost:${port}`,
+        },
+    ],
+    apis: ["./routes/*.ts"],
+});
+app.use(
+    "/swagger",
+    swaggerUi.serve,
+    swaggerUi.setup(specs, { explorer: true })
+);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
