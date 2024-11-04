@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 
 import AuthRoutes from "./routes/AuthRoutes";
+import ExportRoutes from "./routes/ExportRoutes";
 
 dotenv.config();
 
@@ -51,6 +52,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/auth", AuthRoutes);
+app.use("/export", ExportRoutes);
 console.log(
     `mongodb${
         hostname == "127.0.0.1" ? "" : "+srv"
