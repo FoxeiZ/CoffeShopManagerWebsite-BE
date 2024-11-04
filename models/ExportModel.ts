@@ -55,4 +55,5 @@ const ExportSchema = new Schema<IExport>({
     },
 });
 
+export { IExport, IExportItem };
 export default mongoose.model<IExport>("Export", ExportSchema);
