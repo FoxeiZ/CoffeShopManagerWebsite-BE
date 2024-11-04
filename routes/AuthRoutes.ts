@@ -3,40 +3,28 @@ import { compare, hash } from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import AccountModel from "../models/AccountModel";
+import BaseError from "../types/error";
+import { handleError } from "../helpers/errors";
 
 const AuthRouter = Router();
 
-class BaseAuthError extends Error {
-    errorCode: number;
-    constructor(message: string, errorCode: number = 400) {
-        super(message);
-        this.name = "BaseAuthError";
-        this.errorCode = errorCode;
-    }
-}
-
-function handleError(err: BaseAuthError | Error | any, res?: Response) {
-    const cb = res
-        ? (err: any) =>
-              res
-                  .status(err.errorCode)
-                  .json({ result: "error", message: err.message })
-        : console.log;
-    cb(err);
-}
-
-const AccountExisted = new BaseAuthError("Account already exists", 400);
-const PasswordTooShort = new BaseAuthError("Password too short", 400);
-const PasswordsNotMatch = new BaseAuthError("Passwords do not match", 400);
-const EmailNotValid = new BaseAuthError("Email not valid", 400);
-const TOSNotAccepted = new BaseAuthError("Please accept TOS", 400);
+const AccountExisted = new BaseError("Account already exists", 400);
+const PasswordTooShort = new BaseError("Password too short", 400);
+const PasswordsNotMatch = new BaseError("Passwords do not match", 400);
+const EmailNotValid = new BaseError("Email not valid", 400);
+const TOSNotAccepted = new BaseError("Please accept TOS", 400);
 
 /**
  * @swagger
+ * tags:
+ *   - name: Auth
+ *     description: Authentication related endpoints
  * /auth:
  *   get:
  *     summary: Get auth service status
  *     description: Get auth service status
+ *     tags:
+ *       - Auth
  *     responses:
  *       200:
  *         description: Auth service is up and running
@@ -65,6 +53,8 @@ AuthRouter.get("/", (req: Request, res: Response) => {
  *   post:
  *     summary: Register a new account
  *     description: Create a new user account with the provided information.
+ *     tags:
+ *       - Auth
  *     requestBody:
  *       required: true
  *       content:
@@ -179,12 +169,12 @@ interface LoginResponse {
     };
 }
 
-const AccountNotFound = new BaseAuthError("Account not found", 404);
-const AccountForbidden = new BaseAuthError(
+const AccountNotFound = new BaseError("Account not found", 404);
+const AccountForbidden = new BaseError(
     "Account not verified or Account is disabled",
     403
 );
-const WrongPassword = new BaseAuthError("Wrong password", 401);
+const WrongPassword = new BaseError("Wrong password", 401);
 
 /**
  * @swagger
@@ -192,6 +182,8 @@ const WrongPassword = new BaseAuthError("Wrong password", 401);
  *   post:
  *     summary: Login to an account
  *     description: Authenticate the user with the provided email and password.
+ *     tags:
+ *       - Auth
  *     requestBody:
  *       required: true
  *       content:
