@@ -1,9 +1,7 @@
 import { Router, Request, Response } from "express";
 import { compare, hash } from "bcrypt";
-import jwt from "jsonwebtoken";
 
-import WarehouseModel, { IWarehouseItem } from "../models/WarehouseModel";
-import BaseError from "../types/error";
+import WarehouseModel from "../models/WarehouseModel";
 import { handleError } from "../helpers/errors";
 
 import {
@@ -14,7 +12,7 @@ import {
 } from "../middleware/auth/RoleAuth";
 import limiter from "../middleware/RateLimiter";
 import { checkEmptyFields } from "../helpers/general";
-import { Permission, Role } from "../types/role";
+import { Role } from "../types/role";
 
 const WarehouseRoutes = Router();
 
