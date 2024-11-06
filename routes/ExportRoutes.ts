@@ -6,9 +6,15 @@ import ExportModel, { IExportItem } from "../models/ExportModel";
 import BaseError from "../types/error";
 import { handleError } from "../helpers/errors";
 
-import RoleAuth from "../middleware/auth/RoleAuth";
+import {
+    requireRole,
+    requirePermission,
+    requirePermissions,
+    requireManager,
+} from "../middleware/auth/RoleAuth";
 import limiter from "../middleware/RateLimiter";
 import { checkEmptyFields } from "../helpers/general";
+import { Permission, Role } from "../types/role";
 
 const ExportRoutes = Router();
 
@@ -106,7 +112,7 @@ ExportRoutes.get("/", (res: Response) => {
 ExportRoutes.post(
     "/add",
     limiter,
-    RoleAuth("WarehouseEmployee"),
+    requireRole(Role.WarehouseManager),
     (req: Request, res: Response) => {
         const requiredFields = [
             "customerName",
@@ -214,23 +220,28 @@ ExportRoutes.post(
  *                   type: string
  *                   example: Not found
  */
-ExportRoutes.get("/get/:id", (req: Request, res: Response) => {
-    ExportModel.findById(req.params.id)
-        .then((exportItem) => {
-            if (!exportItem) {
-                res.status(404).json({
-                    result: "error",
-                    message: "Not found",
+ExportRoutes.get(
+    "/get/:id",
+    limiter,
+    requireRole(Role.WarehouseManager),
+    (req: Request, res: Response) => {
+        ExportModel.findById(req.params.id)
+            .then((exportItem) => {
+                if (!exportItem) {
+                    res.status(404).json({
+                        result: "error",
+                        message: "Not found",
+                    });
+                    return;
+                }
+                res.status(200).json({
+                    result: "success",
+                    exportItem,
                 });
-                return;
-            }
-            res.status(200).json({
-                result: "success",
-                exportItem,
-            });
-        })
-        .catch((err) => handleError(err, res));
-});
+            })
+            .catch((err) => handleError(err, res));
+    }
+);
 
 /**
  * @swagger
@@ -307,25 +318,30 @@ ExportRoutes.get("/get/:id", (req: Request, res: Response) => {
  *                   type: string
  *                   example: Not found
  */
-ExportRoutes.put("/update/:id", (req: Request, res: Response) => {
-    ExportModel.findByIdAndUpdate(req.params.id, req.body, {
-        new: true,
-    })
-        .then((exportItem) => {
-            if (!exportItem) {
-                res.status(404).json({
-                    result: "error",
-                    message: "Not found",
-                });
-                return;
-            }
-            res.status(200).json({
-                result: "success",
-                exportItem,
-            });
+ExportRoutes.put(
+    "/update/:id",
+    limiter,
+    requireRole(Role.WarehouseManager),
+    (req: Request, res: Response) => {
+        ExportModel.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
         })
-        .catch((err) => handleError(err, res));
-});
+            .then((exportItem) => {
+                if (!exportItem) {
+                    res.status(404).json({
+                        result: "error",
+                        message: "Not found",
+                    });
+                    return;
+                }
+                res.status(200).json({
+                    result: "success",
+                    exportItem,
+                });
+            })
+            .catch((err) => handleError(err, res));
+    }
+);
 
 /**
  * @swagger
@@ -369,24 +385,29 @@ ExportRoutes.put("/update/:id", (req: Request, res: Response) => {
  *                   type: string
  *                   example: Not found
  */
-ExportRoutes.delete("/delete/:id", (req: Request, res: Response) => {
-    ExportModel.findByIdAndDelete(req.params.id)
-        .then((exportItem) => {
-            if (!exportItem) {
-                res.status(404).json({
-                    result: "error",
-                    message: "Not found",
-                });
-            } else {
-                res.status(200).json({
-                    result: "success",
-                    exportItem,
-                });
-                return;
-            }
-        })
-        .catch((err) => handleError(err, res));
-});
+ExportRoutes.delete(
+    "/delete/:id",
+    limiter,
+    requireRole(Role.WarehouseManager),
+    (req: Request, res: Response) => {
+        ExportModel.findByIdAndDelete(req.params.id)
+            .then((exportItem) => {
+                if (!exportItem) {
+                    res.status(404).json({
+                        result: "error",
+                        message: "Not found",
+                    });
+                } else {
+                    res.status(200).json({
+                        result: "success",
+                        exportItem,
+                    });
+                    return;
+                }
+            })
+            .catch((err) => handleError(err, res));
+    }
+);
 
 /**
  * @swagger
@@ -470,53 +491,58 @@ ExportRoutes.delete("/delete/:id", (req: Request, res: Response) => {
  *                   type: string
  *                   example: Page and limit must be numbers
  */
-ExportRoutes.get("/list", async (req: Request, res: Response) => {
-    const [page, limit] = [
-        parseInt(req.query.page as string, 10),
-        parseInt(req.query.limit as string, 10),
-    ];
+ExportRoutes.get(
+    "/list",
+    limiter,
+    requireRole(Role.WarehouseManager),
+    async (req: Request, res: Response) => {
+        const [page, limit] = [
+            parseInt(req.query.page as string, 10),
+            parseInt(req.query.limit as string, 10),
+        ];
 
-    if (isNaN(page) || isNaN(limit)) {
-        res.status(400).json({
-            result: "error",
-            message: "Page and limit must be numbers",
-        });
-        return;
+        if (isNaN(page) || isNaN(limit)) {
+            res.status(400).json({
+                result: "error",
+                message: "Page and limit must be numbers",
+            });
+            return;
+        }
+
+        if (page < 1 || limit < 1) {
+            res.status(400).json({
+                result: "error",
+                message: "Page and limit must be greater than 0",
+            });
+            return;
+        }
+
+        if (limit > 100) {
+            res.status(400).json({
+                result: "error",
+                message: "Limit must be less than 100",
+            });
+            return;
+        }
+
+        try {
+            const exportItems = await ExportModel.find()
+                .limit(limit)
+                .skip((page - 1) * limit)
+                .exec();
+
+            const count = await ExportModel.countDocuments();
+
+            res.status(200).json({
+                result: "success",
+                exportItems,
+                totalPages: Math.ceil(count / limit),
+                currentPage: page,
+            });
+        } catch (err) {
+            handleError(err, res);
+        }
     }
-
-    if (page < 1 || limit < 1) {
-        res.status(400).json({
-            result: "error",
-            message: "Page and limit must be greater than 0",
-        });
-        return;
-    }
-
-    if (limit > 100) {
-        res.status(400).json({
-            result: "error",
-            message: "Limit must be less than 100",
-        });
-        return;
-    }
-
-    try {
-        const exportItems = await ExportModel.find()
-            .limit(limit)
-            .skip((page - 1) * limit)
-            .exec();
-
-        const count = await ExportModel.countDocuments();
-
-        res.status(200).json({
-            result: "success",
-            exportItems,
-            totalPages: Math.ceil(count / limit),
-            currentPage: page,
-        });
-    } catch (err) {
-        handleError(err, res);
-    }
-});
+);
 
 export default ExportRoutes;
