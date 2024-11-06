@@ -1,20 +1,20 @@
 import mongoose, { Schema } from "mongoose";
 
-interface IExportItem {
+interface IWarehouseItem {
     name: string;
     price: number;
     quant: number;
     unit: string;
 }
 
-interface IExport {
+interface IWarehouse {
     customerName: string;
     phoneNumber: string;
     importDate: string;
-    values: IExportItem[];
+    values: IWarehouseItem[];
 }
 
-const ExportItemSchema = new Schema<IExportItem>(
+const WarehouseItemSchema = new Schema<IWarehouseItem>(
     {
         name: {
             type: String,
@@ -36,7 +36,7 @@ const ExportItemSchema = new Schema<IExportItem>(
     { _id: false }
 );
 
-const ExportSchema = new Schema<IExport>({
+const WarehouseSchema = new Schema<IWarehouse>({
     customerName: {
         type: String,
         required: true,
@@ -50,10 +50,10 @@ const ExportSchema = new Schema<IExport>({
         required: true,
     },
     values: {
-        type: [ExportItemSchema],
+        type: [WarehouseItemSchema],
         required: true,
     },
 });
 
-export { IExport, IExportItem };
-export default mongoose.model<IExport>("Export", ExportSchema);
+export { IWarehouse, IWarehouseItem };
+export default mongoose.model<IWarehouse>("Warehouse", WarehouseSchema);

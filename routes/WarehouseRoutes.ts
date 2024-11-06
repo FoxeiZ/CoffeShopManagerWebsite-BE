@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { compare, hash } from "bcrypt";
 import jwt from "jsonwebtoken";
 
-import ExportModel, { IExportItem } from "../models/ExportModel";
+import WarehouseModel, { IWarehouseItem } from "../models/WarehouseModel";
 import BaseError from "../types/error";
 import { handleError } from "../helpers/errors";
 
@@ -16,38 +16,38 @@ import limiter from "../middleware/RateLimiter";
 import { checkEmptyFields } from "../helpers/general";
 import { Permission, Role } from "../types/role";
 
-const ExportRoutes = Router();
+const WarehouseRoutes = Router();
 
 /**
  * @swagger
  * tags:
- *   - name: Export
- *     description: Export related endpoints
- * /export:
+ *   - name: Warehouse
+ *     description: Warehouse related endpoints
+ * /warehouse:
  *   get:
  *     summary: Get export service status
  *     description: Get export service status
  *     tags:
- *       - Export
+ *       - Warehouse
  *     responses:
  *       200:
- *         description: Export service is up and running
+ *         description: Warehouse service is up and running
  */
-ExportRoutes.get("/", (res: Response) => {
+WarehouseRoutes.get("/", (res: Response) => {
     res.status(200).json({
         result: "success",
-        message: "Export service is up and running",
+        message: "Warehouse service is up and running",
     });
 });
 
 /**
  * @swagger
- * /export/add:
+ * /warehouse/add:
  *   post:
  *     summary: Add a new export entry
  *     description: Create a new export entry with the provided information.
  *     tags:
- *       - Export
+ *       - Warehouse
  *     requestBody:
  *       required: true
  *       content:
@@ -83,7 +83,7 @@ ExportRoutes.get("/", (res: Response) => {
  *                       example: "kg"
  *     responses:
  *       200:
- *         description: Export added successfully
+ *         description: Warehouse added successfully
  *         content:
  *           application/json:
  *             schema:
@@ -94,7 +94,7 @@ ExportRoutes.get("/", (res: Response) => {
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: Export added successfully
+ *                   example: Warehouse added successfully
  *       400:
  *         description: Missing required fields
  *         content:
@@ -109,7 +109,7 @@ ExportRoutes.get("/", (res: Response) => {
  *                   type: string
  *                   example: "Missing required fields: customerName, phoneNumber, importDate, values"
  */
-ExportRoutes.post(
+WarehouseRoutes.post(
     "/add",
     limiter,
     requireRole(Role.WarehouseManager),
@@ -132,7 +132,7 @@ ExportRoutes.post(
         }
 
         const { customerName, phoneNumber, importDate, values } = req.body;
-        ExportModel.create({
+        WarehouseModel.create({
             customerName,
             phoneNumber,
             importDate,
@@ -141,7 +141,7 @@ ExportRoutes.post(
             .then(() => {
                 res.json({
                     result: "success",
-                    message: "Export added successfully",
+                    message: "Warehouse added successfully",
                 });
             })
             .catch((err) => handleError(err, res));
@@ -150,12 +150,12 @@ ExportRoutes.post(
 
 /**
  * @swagger
- * /export/get/:id:
+ * /warehouse/get/:id:
  *   get:
  *     summary: Get an export by id
  *     description: Get an export by id
  *     tags:
- *       - Export
+ *       - Warehouse
  *     parameters:
  *       - in: path
  *         name: id
@@ -165,7 +165,7 @@ ExportRoutes.post(
  *         description: The id of the export
  *     responses:
  *       200:
- *         description: Export found
+ *         description: Warehouse found
  *         content:
  *           application/json:
  *             schema:
@@ -207,7 +207,7 @@ ExportRoutes.post(
  *                             type: string
  *                             example: kg
  *       404:
- *         description: Export not found
+ *         description: Warehouse not found
  *         content:
  *           application/json:
  *             schema:
@@ -220,12 +220,12 @@ ExportRoutes.post(
  *                   type: string
  *                   example: Not found
  */
-ExportRoutes.get(
+WarehouseRoutes.get(
     "/get/:id",
     limiter,
     requireRole(Role.WarehouseManager),
     (req: Request, res: Response) => {
-        ExportModel.findById(req.params.id)
+        WarehouseModel.findById(req.params.id)
             .then((exportItem) => {
                 if (!exportItem) {
                     res.status(404).json({
@@ -245,12 +245,12 @@ ExportRoutes.get(
 
 /**
  * @swagger
- * /export/update/{id}:
+ * /warehouse/update/{id}:
  *   put:
  *     summary: Update an export by id
  *     description: Update the details of an export entry by its id.
  *     tags:
- *       - Export
+ *       - Warehouse
  *     parameters:
  *       - in: path
  *         name: id
@@ -293,7 +293,7 @@ ExportRoutes.get(
  *                       example: "kg"
  *     responses:
  *       200:
- *         description: Export updated successfully
+ *         description: Warehouse updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -305,7 +305,7 @@ ExportRoutes.get(
  *                 exportItem:
  *                   type: object
  *       404:
- *         description: Export not found
+ *         description: Warehouse not found
  *         content:
  *           application/json:
  *             schema:
@@ -318,12 +318,12 @@ ExportRoutes.get(
  *                   type: string
  *                   example: Not found
  */
-ExportRoutes.put(
+WarehouseRoutes.put(
     "/update/:id",
     limiter,
     requireRole(Role.WarehouseManager),
     (req: Request, res: Response) => {
-        ExportModel.findByIdAndUpdate(req.params.id, req.body, {
+        WarehouseModel.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
         })
             .then((exportItem) => {
@@ -345,12 +345,12 @@ ExportRoutes.put(
 
 /**
  * @swagger
- * /export/delete/:id:
+ * /warehouse/delete/:id:
  *   delete:
  *     summary: Delete an export by id
  *     description: Delete an export by id
  *     tags:
- *       - Export
+ *       - Warehouse
  *     parameters:
  *       - in: path
  *         name: id
@@ -360,7 +360,7 @@ ExportRoutes.put(
  *         description: The id of the export
  *     responses:
  *       200:
- *         description: Export deleted
+ *         description: Warehouse deleted
  *         content:
  *           application/json:
  *             schema:
@@ -372,7 +372,7 @@ ExportRoutes.put(
  *                 exportItem:
  *                   type: object
  *       404:
- *         description: Export not found
+ *         description: Warehouse not found
  *         content:
  *           application/json:
  *             schema:
@@ -385,12 +385,12 @@ ExportRoutes.put(
  *                   type: string
  *                   example: Not found
  */
-ExportRoutes.delete(
+WarehouseRoutes.delete(
     "/delete/:id",
     limiter,
     requireRole(Role.WarehouseManager),
     (req: Request, res: Response) => {
-        ExportModel.findByIdAndDelete(req.params.id)
+        WarehouseModel.findByIdAndDelete(req.params.id)
             .then((exportItem) => {
                 if (!exportItem) {
                     res.status(404).json({
@@ -411,12 +411,12 @@ ExportRoutes.delete(
 
 /**
  * @swagger
- * /export/list:
+ * /warehouse/list:
  *   get:
  *     summary: List exports with pagination
  *     description: Retrieve a paginated list of exports.
  *     tags:
- *       - Export
+ *       - Warehouse
  *     parameters:
  *       - in: query
  *         name: page
@@ -491,7 +491,7 @@ ExportRoutes.delete(
  *                   type: string
  *                   example: Page and limit must be numbers
  */
-ExportRoutes.get(
+WarehouseRoutes.get(
     "/list",
     limiter,
     requireRole(Role.WarehouseManager),
@@ -526,12 +526,12 @@ ExportRoutes.get(
         }
 
         try {
-            const exportItems = await ExportModel.find()
+            const exportItems = await WarehouseModel.find()
                 .limit(limit)
                 .skip((page - 1) * limit)
                 .exec();
 
-            const count = await ExportModel.countDocuments();
+            const count = await WarehouseModel.countDocuments();
 
             res.status(200).json({
                 result: "success",
@@ -545,4 +545,4 @@ ExportRoutes.get(
     }
 );
 
-export default ExportRoutes;
+export default WarehouseRoutes;
