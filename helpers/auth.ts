@@ -1,26 +1,60 @@
-enum Role {
-    Admin = "Admin",
-    Employee = "Employee",
-    Manager = "Manager",
-    Customer = "Customer",
-}
-
-const RoleLevel = {
-    [Role.Admin]: 4,
-    [Role.Manager]: 3,
-    [Role.Employee]: 2,
-    [Role.Customer]: 1,
-} as const;
-
-function isValidRole(role: string): role is Role {
-    return Object.values(Role).includes(role as Role);
-}
+import { Role, RoleDefinitions, Permission, isValidRole } from "../types/role";
 
 function hasPermission(
     userRole: string | Role,
+    requiredPermission: Permission
+): boolean {
+    const userRoleEnum =
+        typeof userRole === "string"
+            ? isValidRole(userRole)
+                ? (userRole as Role)
+                : null
+            : userRole;
+
+    if (!userRoleEnum) {
+        return false;
+    }
+
+    const roleDef = RoleDefinitions[userRoleEnum];
+
+    if (
+        userRoleEnum === Role.Admin ||
+        roleDef.permissions.includes(Permission.MANAGE_ALL)
+    ) {
+        return true;
+    }
+
+    return roleDef.permissions.includes(requiredPermission);
+}
+
+function hasAllPermissions(
+    userRole: string | Role,
+    requiredPermissions: Permission[]
+): boolean {
+    const userRoleEnum =
+        typeof userRole === "string"
+            ? isValidRole(userRole)
+                ? (userRole as Role)
+                : null
+            : userRole;
+
+    if (!userRoleEnum) {
+        return false;
+    }
+
+    if (userRoleEnum === Role.Admin) {
+        return true;
+    }
+
+    return requiredPermissions.every((permission) =>
+        hasPermission(userRoleEnum, permission)
+    );
+}
+
+function hasRequiredRole(
+    userRole: string | Role,
     requiredRole: string | Role
 ): boolean {
-    // Chuyển đổi và validate input
     const userRoleEnum =
         typeof userRole === "string"
             ? isValidRole(userRole)
@@ -39,7 +73,54 @@ function hasPermission(
         return false;
     }
 
-    return RoleLevel[userRoleEnum] >= RoleLevel[requiredRoleEnum];
+    if (userRoleEnum === Role.Admin) {
+        return true;
+    }
+
+    const requiredPermissions = RoleDefinitions[requiredRoleEnum].permissions;
+
+    return hasAllPermissions(userRoleEnum, requiredPermissions);
 }
 
-export { hasPermission };
+function compareManagerRoles(
+    userRole: string | Role,
+    requiredRole: string | Role
+): boolean {
+    const userRoleEnum =
+        typeof userRole === "string"
+            ? isValidRole(userRole)
+                ? (userRole as Role)
+                : null
+            : userRole;
+
+    const requiredRoleEnum =
+        typeof requiredRole === "string"
+            ? isValidRole(requiredRole)
+                ? (requiredRole as Role)
+                : null
+            : requiredRole;
+
+    if (!userRoleEnum || !requiredRoleEnum) {
+        return false;
+    }
+
+    if (userRoleEnum === Role.Admin) {
+        return true;
+    }
+
+    const userDef = RoleDefinitions[userRoleEnum];
+    const requiredDef = RoleDefinitions[requiredRoleEnum];
+
+    if (!userDef.isManager || !requiredDef.isManager) {
+        return false;
+    }
+
+    return hasAllPermissions(userRoleEnum, requiredDef.permissions);
+}
+
+export {
+    hasPermission,
+    hasAllPermissions,
+    hasRequiredRole,
+    compareManagerRoles,
+};
