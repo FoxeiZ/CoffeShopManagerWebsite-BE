@@ -50,26 +50,28 @@ SellRoutes.get("/", (req: Request, res: Response) => {
  * @swagger
  * /sell/list:
  *   get:
- *     summary: Get list of all sell bills
- *     description: Get list of all sell bills
+ *     summary: List all sell entries with pagination
+ *     description: Retrieve a paginated list of sell entries.
  *     tags:
  *       - Sell
  *     parameters:
  *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *         description: The numbers of items to return
- *       - in: query
  *         name: page
  *         schema:
  *           type: integer
- *           minimum: 1
- *         description: The page number
+ *           example: 1
+ *         required: true
+ *         description: The page number to retrieve
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *         required: true
+ *         description: The number of sell entries per page
  *     responses:
  *       200:
- *         description: List of all sell bills
+ *         description: A paginated list of sell entries
  *         content:
  *           application/json:
  *             schema:
@@ -78,13 +80,49 @@ SellRoutes.get("/", (req: Request, res: Response) => {
  *                 result:
  *                   type: string
  *                   example: success
- *                 message:
- *                   type: string
- *                   example: List of all sell bills
- *                 data:
+ *                 sellItems:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/ISell'
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: 5f9f1c9f336f08617c7e90a1
+ *                       customerName:
+ *                         type: string
+ *                         example: John Doe
+ *                       phoneNumber:
+ *                         type: string
+ *                         example: 0123456789
+ *                       sellDate:
+ *                         type: string
+ *                         example: 2020-11-01T00:00:00.000Z
+ *                       values:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                               example: Product A
+ *                             price:
+ *                               type: number
+ *                               example: 10.5
+ *                             quant:
+ *                               type: number
+ *                               example: 100
+ *                             unit:
+ *                               type: string
+ *                               example: kg
+ *                 total:
+ *                   type: number
+ *                   example: 100
+ *                 limit:
+ *                   type: number
+ *                   example: 10
+ *                 page:
+ *                   type: number
+ *                   example: 1
  *       400:
  *         description: Invalid request parameters
  *         content:
@@ -154,8 +192,8 @@ SellRoutes.get(
  * @swagger
  * /sell/add:
  *   post:
- *     summary: Add a new sell entry
- *     description: Create a new sell entry with the provided information.
+ *     summary: Add a new sell item
+ *     description: Add a new sell item
  *     tags:
  *       - Sell
  *     requestBody:
@@ -170,10 +208,10 @@ SellRoutes.get(
  *                 example: John Doe
  *               phoneNumber:
  *                 type: string
- *                 example: "+1234567890"
+ *                 example: 0123456789
  *               sellDate:
  *                 type: string
- *                 example: "2023-10-10"
+ *                 example: 2020-11-01T00:00:00.000Z
  *               values:
  *                 type: array
  *                 items:
@@ -181,7 +219,7 @@ SellRoutes.get(
  *                   properties:
  *                     name:
  *                       type: string
- *                       example: "Product A"
+ *                       example: Product A
  *                     price:
  *                       type: number
  *                       example: 10.5
@@ -190,10 +228,10 @@ SellRoutes.get(
  *                       example: 100
  *                     unit:
  *                       type: string
- *                       example: "kg"
+ *                       example: kg
  *     responses:
  *       200:
- *         description: Sell added successfully
+ *         description: The sell item was added successfully
  *         content:
  *           application/json:
  *             schema:
@@ -206,7 +244,7 @@ SellRoutes.get(
  *                   type: string
  *                   example: Sell added successfully
  *       400:
- *         description: Missing required fields
+ *         description: Invalid request parameters
  *         content:
  *           application/json:
  *             schema:
@@ -257,10 +295,10 @@ SellRoutes.post(
 
 /**
  * @swagger
- * /sell/get/:id:
+ * /sell/get/{id}:
  *   get:
- *     summary: Get a sell item by id
- *     description: Get a sell item by id
+ *     summary: Get a sell entry by id
+ *     description: Retrieve a sell entry from the database using the provided id.
  *     tags:
  *       - Sell
  *     parameters:
@@ -269,10 +307,10 @@ SellRoutes.post(
  *         schema:
  *           type: string
  *         required: true
- *         description: The id of the sell item
+ *         description: The id of the sell entry
  *     responses:
  *       200:
- *         description: The sell item was found
+ *         description: Sell entry found
  *         content:
  *           application/json:
  *             schema:
@@ -281,24 +319,21 @@ SellRoutes.post(
  *                 result:
  *                   type: string
  *                   example: success
- *                 message:
- *                   type: string
- *                   example: Sell item found
  *                 sellItem:
  *                   type: object
  *                   properties:
  *                     _id:
  *                       type: string
- *                       example: 5f9f1c5b9c9c6430b839b53f
+ *                       example: 5f9f1c9f336f08617c7e90a1
  *                     customerName:
  *                       type: string
- *                       example: nguyen van a
+ *                       example: John Doe
  *                     phoneNumber:
  *                       type: string
- *                       example: 123456789
+ *                       example: 0123456789
  *                     sellDate:
  *                       type: string
- *                       example: 2020-11-01T00:00:00.000Z
+ *                       example: 2020-01-01T00:00:00.000Z
  *                     values:
  *                       type: array
  *                       items:
@@ -306,18 +341,15 @@ SellRoutes.post(
  *                         properties:
  *                           name:
  *                             type: string
- *                             example: product A
+ *                             example: Product A
  *                           price:
  *                             type: number
- *                             example: 10.5
+ *                             example: 10.99
  *                           quant:
  *                             type: number
- *                             example: 100
- *                           unit:
- *                             type: string
- *                             example: kg
+ *                             example: 10
  *       404:
- *         description: The sell item was not found
+ *         description: Sell entry not found
  *         content:
  *           application/json:
  *             schema:
@@ -358,16 +390,16 @@ SellRoutes.get(
  * /sell/delete/{id}:
  *   delete:
  *     summary: Delete a sell entry by id
- *     description: Remove a sell entry from the database using the provided id.
+ *     description: Delete a sell entry in the database using the provided id.
  *     tags:
  *       - Sell
  *     parameters:
  *       - in: path
  *         name: id
- *         required: true
  *         schema:
  *           type: string
- *         description: The id of the sell entry to delete
+ *         required: true
+ *         description: The id of the sell entry
  *     responses:
  *       200:
  *         description: Sell deleted successfully
@@ -383,7 +415,7 @@ SellRoutes.get(
  *                   type: string
  *                   example: Sell deleted successfully
  *       404:
- *         description: Sell item not found
+ *         description: Sell entry not found
  *         content:
  *           application/json:
  *             schema:
