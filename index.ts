@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 
 import AuthRoutes from "./routes/AuthRoutes";
 import WarehouseRoutes from "./routes/WarehouseRoutes";
+import SellRoutes from "./routes/SellRoutes";
 
 dotenv.config();
 
@@ -53,6 +54,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/auth", AuthRoutes);
 app.use("/warehouse", WarehouseRoutes);
+app.use("/sell", SellRoutes);
 console.log(
     `mongodb${
         hostname == "127.0.0.1" ? "" : "+srv"
