@@ -536,6 +536,7 @@ WarehouseRoutes.get(
                 exportItems,
                 totalPages: Math.ceil(count / limit),
                 currentPage: page,
+                totalItems: count,
             });
         } catch (err) {
             handleError(err, res);

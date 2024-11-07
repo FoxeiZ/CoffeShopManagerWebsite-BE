@@ -141,7 +141,7 @@ SellRoutes.get(
     "/list",
     limiter,
     requireRole(Role.Employee),
-    (req: Request, res: Response) => {
+    async (req: Request, res: Response) => {
         const limit = parseInt(req.query.limit as string) || 10;
         const page = parseInt(req.query.page as string) || 1;
         const skip = (page - 1) * limit;
@@ -173,14 +173,14 @@ SellRoutes.get(
         try {
             const sellItems = SellModel.find().limit(limit).skip(skip).exec();
 
-            const count = SellModel.countDocuments();
+            const count = await SellModel.countDocuments();
 
             res.status(200).json({
                 result: "success",
                 sellItems,
-                total: count,
-                limit,
-                page,
+                totalPages: Math.ceil(count / limit),
+                currentPage: page,
+                totalItems: count,
             });
         } catch (err) {
             handleError(err, res);
