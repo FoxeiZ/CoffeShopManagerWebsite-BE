@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "target": "ES5",
+    "module": "CommonJS",
+    "outDir": "build",
+    "sourceMap": true,
     "lib": [
       "dom",
       "dom.iterable",
@@ -10,7 +14,6 @@
     "strict": false,
     "noEmit": true,
     "incremental": true,
-    "module": "esnext",
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
