@@ -1,7 +1,11 @@
 import { Router, Request, Response } from "express";
 import { compare, hash } from "bcrypt";
 
-import WarehouseModel from "../models/WarehouseModel";
+import WarehouseModel, {
+    IWarehouse,
+    IWarehouseItem,
+    WarehouseItemModel,
+} from "../models/WarehouseModel";
 import { handleError } from "../helpers/errors";
 
 import {
@@ -15,6 +19,38 @@ import { checkEmptyFields } from "../helpers/general";
 import { Role } from "../types/role";
 
 const WarehouseRoutes = Router();
+
+function checkOrAddWarehouseItem(item: IWarehouseItem) {
+    WarehouseItemModel.findOne({
+        name: item.name,
+        unit: item.unit,
+        price: item.price,
+    }).then((warehouseItem) => {
+        if (warehouseItem) {
+            warehouseItem.quant += item.quant;
+            warehouseItem.save();
+        } else {
+            WarehouseItemModel.create(item);
+        }
+    });
+}
+
+function updateWarehouseItem(_id: string, newWarehouse: IWarehouse) {
+    WarehouseModel.findById(_id).then((warehouse) => {
+        if (warehouse) {
+            warehouse.values.forEach((item) => {
+                const newItem = newWarehouse.values.find(
+                    (x) =>
+                        x.name === item.name &&
+                        x.unit === item.unit &&
+                        x.price === item.price
+                );
+                newItem.quant = newItem ? newItem.quant - item.quant : 0;
+                checkOrAddWarehouseItem(newItem);
+            });
+        }
+    });
+}
 
 /**
  * @swagger
@@ -46,6 +82,8 @@ WarehouseRoutes.get("/", (res: Response) => {
  *     description: Create a new export entry with the provided information.
  *     tags:
  *       - Warehouse
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -137,6 +175,7 @@ WarehouseRoutes.post(
             values,
         })
             .then(() => {
+                values.forEach(checkOrAddWarehouseItem);
                 res.json({
                     result: "success",
                     message: "Warehouse added successfully",
@@ -154,6 +193,8 @@ WarehouseRoutes.post(
  *     description: Get an export by id
  *     tags:
  *       - Warehouse
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -249,6 +290,8 @@ WarehouseRoutes.get(
  *     description: Update the details of an export entry by its id.
  *     tags:
  *       - Warehouse
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -332,6 +375,10 @@ WarehouseRoutes.put(
                     });
                     return;
                 }
+                updateWarehouseItem(
+                    req.params.id as string,
+                    exportItem as IWarehouse
+                );
                 res.status(200).json({
                     result: "success",
                     exportItem,
@@ -349,6 +396,8 @@ WarehouseRoutes.put(
  *     description: Delete an export by id
  *     tags:
  *       - Warehouse
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -415,6 +464,8 @@ WarehouseRoutes.delete(
  *     description: Retrieve a paginated list of exports.
  *     tags:
  *       - Warehouse
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page
@@ -495,8 +546,8 @@ WarehouseRoutes.get(
     requireRole(Role.WarehouseManager),
     async (req: Request, res: Response) => {
         const [page, limit] = [
-            parseInt(req.query.page as string, 10),
-            parseInt(req.query.limit as string, 10),
+            parseInt((req.query.page || "1") as string, 10),
+            parseInt((req.query.limit || "10") as string, 10),
         ];
 
         if (isNaN(page) || isNaN(limit)) {
