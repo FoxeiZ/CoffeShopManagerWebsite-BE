@@ -23,6 +23,7 @@ enum Permission {
 
     // Employee management permissions
     MANAGE_EMPLOYEES = "manage_employees",
+    VIEW_EMPLOYEES = "view_employees",
     MANAGE_SCHEDULES = "manage_schedules",
     VIEW_EMPLOYEE_RECORDS = "view_employee_records",
 
