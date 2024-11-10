@@ -274,4 +274,36 @@ ProductRoutes.delete(
     }
 );
 
+ProductRoutes.post(
+    "/set-availability",
+    limiter,
+    requireManager,
+    (req: Request, res: Response) => {
+        const requiredFields = ["id", "isAvailable"];
+        if (checkEmptyFields(requiredFields, req.body)) {
+            res.status(400).json({
+                result: "error",
+                message: "Missing required fields",
+            });
+            return;
+        }
+
+        const { id, isAvailable } = req.body;
+        ProductModel.findByIdAndUpdate(id)
+            .then((product) => {
+                if (!product) {
+                    res.status(404).json({
+                        result: "error",
+                        message: "Not found",
+                    });
+                    return;
+                }
+
+                product.isAvailable = isAvailable;
+                product.save();
+            })
+            .catch((err) => handleError(err, res));
+    }
+);
+
 export default ProductRoutes;
