@@ -49,6 +49,54 @@ CustomerRoutes.get("/", (req: Request, res: Response) => {
     });
 });
 
+/**
+ * @swagger
+ * /customer/add:
+ *   post:
+ *     summary: Add a customer
+ *     description: Add a customer
+ *     tags:
+ *       - Customer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               phoneNumber:
+ *                 type: string
+ *                 example: 1234567890
+ *     responses:
+ *       200:
+ *         description: Customer added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Customer added successfully
+ *                 customer:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: 5f6c7b72fa6f9a0017d5d5b4
+ *                     name:
+ *                       type: string
+ *                       example: John Doe
+ *                     phoneNumber:
+ *                       type: string
+ *                       example: 1234567890
+ */
 CustomerRoutes.post(
     "/add",
     limiter,
@@ -82,6 +130,45 @@ CustomerRoutes.post(
     }
 );
 
+/**
+ * @swagger
+ * /customer/get/{id}:
+ *   get:
+ *     summary: Get a customer by id
+ *     description: Get a customer by id
+ *     tags:
+ *       - Customer
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The id of the customer
+ *     responses:
+ *       200:
+ *         description: Customer found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: success
+ *                 customer:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: 1234567890
+ *                     name:
+ *                       type: string
+ *                       example: John Doe
+ *                     phoneNumber:
+ *                       type: string
+ *                       example: 1234567890
+ */
 CustomerRoutes.get(
     "/get/:id",
     limiter,
@@ -105,6 +192,60 @@ CustomerRoutes.get(
     }
 );
 
+/**
+ * @swagger
+ * /customer/update/{id}:
+ *   put:
+ *     summary: Update customer
+ *     description: Update customer
+ *     tags:
+ *       - Customer
+ *     security:
+ *       - Bearer: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Customer id
+ *       - in: body
+ *         name: customer
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *               example: John Doe
+ *             phoneNumber:
+ *               type: string
+ *               example: 1234567890
+ *         description: Customer object
+ *     responses:
+ *       200:
+ *         description: Customer updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: success
+ *                 customer:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: 1234567890
+ *                     name:
+ *                       type: string
+ *                       example: John Doe
+ *                     phoneNumber:
+ *                       type: string
+ *                       example: 1234567890
+ */
 CustomerRoutes.put(
     "/update/:id",
     limiter,
@@ -130,6 +271,45 @@ CustomerRoutes.put(
     }
 );
 
+/**
+ * @swagger
+ * /customer/delete/:id:
+ *   delete:
+ *     summary: Delete customer
+ *     description: Delete customer
+ *     tags:
+ *       - Customer
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: Customer ID
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Customer deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: success
+ *                 customer:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: 1234567890
+ *                     name:
+ *                       type: string
+ *                       example: John Doe
+ *                     phoneNumber:
+ *                       type: string
+ *                       example: 1234567890
+ */
 CustomerRoutes.delete(
     "/delete/:id",
     limiter,
@@ -153,6 +333,65 @@ CustomerRoutes.delete(
     }
 );
 
+/**
+ * @swagger
+ * /customer/list:
+ *   get:
+ *     summary: List customers
+ *     description: Retrieve a paginated list of customers
+ *     tags:
+ *       - Customer
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: A list of customers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: success
+ *                 customers:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 10
+ *                 currentPage:
+ *                   type: integer
+ *                   example: 1
+ *                 totalItems:
+ *                   type: integer
+ *                   example: 100
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Page and limit must be numbers
+ */
 CustomerRoutes.get(
     "/list",
     limiter,
@@ -205,6 +444,63 @@ CustomerRoutes.get(
     }
 );
 
+/**
+ * @swagger
+ * /customer/search:
+ *   get:
+ *     summary: Search customers by name or phone number
+ *     description: Search customers by name or phone number
+ *     tags:
+ *       - Customer
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Search query
+ *     responses:
+ *       200:
+ *         description: List of customers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: success
+ *                 customers:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Customer'
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Search query is required
+ *       404:
+ *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Not found
+ */
 CustomerRoutes.get(
     "/search",
     limiter,
@@ -240,4 +536,5 @@ CustomerRoutes.get(
         });
     }
 );
+
 export default CustomerRoutes;
