@@ -32,19 +32,22 @@ const AccountSchema = new Schema<IAccount>({
     },
     avatarPath: {
         type: String,
-        required: true,
+        default: "",
     },
     isVerified: {
         type: Boolean,
         required: true,
+        default: false,
     },
     isActive: {
         type: Boolean,
         required: true,
+        default: true,
     },
     isFirstTime: {
         type: Boolean,
         required: true,
+        default: true,
     },
     createdAt: {
         type: Date,

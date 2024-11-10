@@ -49,5 +49,5 @@ const SellModel = new Schema<ISell>({
     ],
 });
 
-export { ISell, ISellItem };
+export type { ISell, ISellItem };
 export default mongoose.model<ISell>("Sell", SellModel);
