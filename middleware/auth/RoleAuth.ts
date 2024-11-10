@@ -32,13 +32,15 @@ function requireRole(roleName: string | Role) {
             return;
         }
 
+        console.log(user.role, roleName);
         if (hasRequiredRole(user.role, roleName)) {
             next();
-        } else {
-            res.status(403).json({
-                error: "Insufficient role permissions",
-            });
+            return;
         }
+
+        res.status(403).json({
+            error: "Insufficient role permissions",
+        });
     };
 }
 
@@ -84,25 +86,24 @@ function requirePermissions(permissions: Permission[]) {
     };
 }
 
-function requireManager() {
-    return function (req: Request, res: Response, next: NextFunction) {
-        const user = verifyToken(req, res) as any;
+function requireManager(req: Request, res: Response, next: NextFunction) {
+    const user = verifyToken(req, res) as any;
 
-        if (!user) {
-            res.sendStatus(401);
-            return;
-        }
+    if (!user) {
+        res.sendStatus(401);
+        return;
+    }
 
-        const roleDefinition = RoleDefinitions[user.role as Role];
+    const roleDefinition = RoleDefinitions[user.role as Role];
 
-        if (roleDefinition?.isManager || user.role === Role.Admin) {
-            next();
-        } else {
-            res.status(403).json({
-                error: "Manager access required",
-            });
-        }
-    };
+    if (roleDefinition?.isManager || user.role === Role.Admin) {
+        next();
+        return;
+    } else {
+        res.status(403).json({
+            error: "Manager access required",
+        });
+    }
 }
 
 export { requireRole, requirePermission, requirePermissions, requireManager };

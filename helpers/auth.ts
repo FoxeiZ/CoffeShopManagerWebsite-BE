@@ -1,4 +1,10 @@
-import { Role, RoleDefinitions, Permission, isValidRole } from "../types/role";
+import {
+    Role,
+    RoleDefinitions,
+    Permission,
+    isValidRole,
+    getAllPermissions,
+} from "../types/role";
 
 function hasPermission(
     userRole: string | Role,
@@ -24,7 +30,7 @@ function hasPermission(
         return true;
     }
 
-    return roleDef.permissions.includes(requiredPermission);
+    return getAllPermissions(userRoleEnum).includes(requiredPermission);
 }
 
 function hasAllPermissions(

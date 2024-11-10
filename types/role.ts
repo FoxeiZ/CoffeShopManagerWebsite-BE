@@ -38,6 +38,7 @@ enum Permission {
 // Define role structure
 interface RoleDefinition {
     isManager: boolean;
+    extendFrom?: Role[];
     permissions: Permission[];
 }
 
@@ -66,6 +67,7 @@ const RoleDefinitions: Record<Role, RoleDefinition> = {
     },
     [Role.EmployeeManager]: {
         isManager: true,
+        extendFrom: [Role.Employee],
         permissions: [
             Permission.MANAGE_EMPLOYEES,
             Permission.MANAGE_SCHEDULES,
@@ -75,6 +77,7 @@ const RoleDefinitions: Record<Role, RoleDefinition> = {
     },
     [Role.Employee]: {
         isManager: false,
+        extendFrom: [Role.Customer],
         permissions: [Permission.VIEW_OWN_PROFILE, Permission.SUBMIT_REPORTS],
     },
     [Role.Customer]: {
@@ -88,4 +91,17 @@ function isValidRole(role: string): role is Role {
     return Object.values(Role).includes(role as Role);
 }
 
-export { Role, RoleDefinition, Permission, RoleDefinitions, isValidRole };
+function getAllPermissions(role: Role): Permission[] {
+    const permissions = RoleDefinitions[role].permissions;
+    if (RoleDefinitions[role].extendFrom) {
+        return permissions.concat(
+            ...RoleDefinitions[role].extendFrom.map((extendRole) =>
+                getAllPermissions(extendRole)
+            )
+        );
+    }
+    return permissions;
+}
+
+export type { RoleDefinition };
+export { Role, Permission, RoleDefinitions, isValidRole, getAllPermissions };
