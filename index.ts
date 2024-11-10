@@ -30,6 +30,15 @@ const specs = swaggerJsdoc({
             title: "Coffeeshop Manager API",
             version: "1.0.0",
         },
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT",
+                },
+            },
+        },
     },
     servers: [
         {
