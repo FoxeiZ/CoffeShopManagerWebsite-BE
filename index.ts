@@ -7,8 +7,11 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 
 import AuthRoutes from "./routes/AuthRoutes";
-import WarehouseRoutes from "./routes/WarehouseRoutes";
+import CustomerRoutes from "./routes/CustomerRoutes";
+import EmployeeRoutes from "./routes/EmployeeRoutes";
 import SellRoutes from "./routes/SellRoutes";
+import ProductRoutes from "./routes/ProductRoutes";
+import WarehouseRoutes from "./routes/WarehouseRoutes";
 
 dotenv.config();
 
@@ -62,8 +65,12 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/auth", AuthRoutes);
-app.use("/warehouse", WarehouseRoutes);
+app.use("/customer", CustomerRoutes);
+app.use("/employee", EmployeeRoutes);
+app.use("/product", ProductRoutes);
 app.use("/sell", SellRoutes);
+app.use("/warehouse", WarehouseRoutes);
+
 console.log(
     `mongodb${
         hostname == "127.0.0.1" ? "" : "+srv"
