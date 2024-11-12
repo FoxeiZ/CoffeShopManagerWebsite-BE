@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { compare, hash } from "bcrypt";
 
 import EmployeeModel, { IEmployee } from "../models/EmployeeModels";
+import CheckinModels, { ICheckin } from "../models/CheckinModels";
 import { handleError } from "../helpers/errors";
 
 import {
@@ -1048,6 +1049,96 @@ EmployeeRoutes.post(
         } catch (err) {
             handleError(err, res);
         }
+    }
+);
+
+EmployeeRoutes.post(
+    "/checkin",
+    limiter,
+    requireRole(Role.Employee),
+    async (req: Request, res: Response) => {
+        const requiredFields = ["checkinTime", "type", "value", "employee"];
+        if (checkEmptyFields(requiredFields, req.body)) {
+            res.status(400).json({
+                result: "error",
+                message: "Missing required fields",
+            });
+            return;
+        }
+
+        const { checkinTime, type, value, employee_id } = req.body;
+        const employee = await EmployeeModel.findById(employee_id).exec();
+        if (!employee) {
+            res.status(404).json({
+                result: "error",
+                message: "Employee not found",
+            });
+            return;
+        }
+
+        const newCheckin = new CheckinModels({
+            checkinTime,
+            type,
+            value,
+        });
+        employee.checkins.push(newCheckin);
+        employee.save();
+        res.status(200).json({
+            result: "success",
+            message: "Checkin added successfully",
+        });
+    }
+);
+
+EmployeeRoutes.get(
+    "/checkin",
+    limiter,
+    requireRole(Role.Employee),
+    async (req: Request, res: Response) => {
+        const { employee_id } = req.body;
+        const employee = await EmployeeModel.findById(employee_id).exec();
+        if (!employee) {
+            res.status(404).json({
+                result: "error",
+                message: "Employee not found",
+            });
+            return;
+        }
+        res.status(200).json({
+            result: "success",
+            checkins: employee.checkins,
+        });
+    }
+);
+
+EmployeeRoutes.delete(
+    "/checkin",
+    limiter,
+    requireRole(Role.Employee),
+    async (req: Request, res: Response) => {
+        const { employee_id, checkin_id } = req.body;
+        const employee = await EmployeeModel.findById(employee_id).exec();
+        if (!employee) {
+            res.status(404).json({
+                result: "error",
+                message: "Employee not found",
+            });
+            return;
+        }
+        const checkin = employee.checkins.id(checkin_id);
+        if (!checkin) {
+            res.status(404).json({
+                result: "error",
+                message: "Checkin not found",
+            });
+            return;
+        }
+        checkin.deleteOne();
+        await employee.save();
+        res.status(200).json({
+            result: "success",
+            message: "Checkin removed successfully",
+        });
     }
 );
 
