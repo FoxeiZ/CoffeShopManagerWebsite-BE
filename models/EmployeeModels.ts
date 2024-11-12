@@ -1,4 +1,6 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
+
+import CheckinModels, { ICheckin, CheckinSchema } from "./CheckinModels";
 
 interface IEmployee {
     name: string;
@@ -9,6 +11,7 @@ interface IEmployee {
     isActive: boolean;
     isVerified: boolean;
     isFirstTime: boolean;
+    checkins: Types.DocumentArray<ICheckin & Document>;
 }
 
 const EmployeeSchema = new Schema<IEmployee>({
@@ -46,6 +49,11 @@ const EmployeeSchema = new Schema<IEmployee>({
         type: Boolean,
         required: true,
         default: true,
+    },
+    checkins: {
+        type: [CheckinSchema],
+        default: [],
+        ref: "Checkin",
     },
 });
 
