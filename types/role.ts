@@ -30,6 +30,7 @@ enum Permission {
     // Employee permissions
     VIEW_OWN_PROFILE = "view_own_profile",
     SUBMIT_REPORTS = "submit_reports",
+    VIEW_MENU_ITEMS = "view_menu_items",
 
     // Customer permissions
     VIEW_PRODUCTS = "view_products",
@@ -90,6 +91,7 @@ const RoleDefinitions: Record<Role, RoleDefinition> = {
             Permission.VIEW_OWN_PROFILE,
             Permission.SUBMIT_REPORTS,
             Permission.VIEW_SUPPLIERS,
+            Permission.VIEW_MENU_ITEMS,
         ],
     },
     [Role.Customer]: {
