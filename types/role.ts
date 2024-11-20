@@ -34,6 +34,10 @@ enum Permission {
     // Customer permissions
     VIEW_PRODUCTS = "view_products",
     PLACE_ORDERS = "place_orders",
+
+    // Supplier permissions
+    MANAGE_SUPPLIERS = "manage_suppliers",
+    VIEW_SUPPLIERS = "view_suppliers",
 }
 
 // Define role structure
@@ -55,6 +59,7 @@ const RoleDefinitions: Record<Role, RoleDefinition> = {
             Permission.VIEW_ALL_REPORTS,
             Permission.VIEW_EMPLOYEE_RECORDS,
             Permission.VIEW_WAREHOUSE_REPORTS,
+            Permission.VIEW_SUPPLIERS,
         ],
     },
     [Role.WarehouseManager]: {
@@ -64,6 +69,8 @@ const RoleDefinitions: Record<Role, RoleDefinition> = {
             Permission.MANAGE_INVENTORY,
             Permission.VIEW_WAREHOUSE_REPORTS,
             Permission.VIEW_ALL_REPORTS,
+            Permission.MANAGE_SUPPLIERS,
+            Permission.VIEW_SUPPLIERS,
         ],
     },
     [Role.EmployeeManager]: {
@@ -79,7 +86,11 @@ const RoleDefinitions: Record<Role, RoleDefinition> = {
     [Role.Employee]: {
         isManager: false,
         extendFrom: [Role.Customer],
-        permissions: [Permission.VIEW_OWN_PROFILE, Permission.SUBMIT_REPORTS],
+        permissions: [
+            Permission.VIEW_OWN_PROFILE,
+            Permission.SUBMIT_REPORTS,
+            Permission.VIEW_SUPPLIERS,
+        ],
     },
     [Role.Customer]: {
         isManager: false,
