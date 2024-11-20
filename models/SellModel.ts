@@ -11,6 +11,7 @@ interface ISell {
     customerName: string;
     phoneNumber: string;
     sellDate: string;
+    voucher?: string;
     values: ISellItem[];
 }
 
@@ -26,6 +27,9 @@ const SellModel = new Schema<ISell>({
     sellDate: {
         type: String,
         required: true,
+    },
+    voucher: {
+        type: String,
     },
     values: [
         {

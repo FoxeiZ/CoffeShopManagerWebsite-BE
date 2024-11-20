@@ -13,6 +13,7 @@ import {
 import limiter from "../middleware/RateLimiter";
 import { checkEmptyFields } from "../helpers/general";
 import { Role } from "../types/role";
+import VoucherModel from "../models/VoucherModels";
 
 const SellRoutes = Router();
 
@@ -261,7 +262,7 @@ SellRoutes.post(
     "/add",
     limiter,
     requireRole(Role.Employee),
-    (req: Request, res: Response) => {
+    async (req: Request, res: Response) => {
         const requiredFields = [
             "customerName",
             "phoneNumber",
@@ -276,12 +277,30 @@ SellRoutes.post(
             return;
         }
 
-        const { customerName, phoneNumber, sellDate, values } = req.body;
+        const { customerName, phoneNumber, sellDate, values, voucher } =
+            req.body;
+        let discount = 0;
+
+        if (voucher) {
+            const voucherDoc = await VoucherModel.findById(voucher);
+            if (voucherDoc) {
+                discount = voucherDoc.value;
+            }
+        }
+
+        const totalValue = values.reduce(
+            (acc, item) => acc + item.price * item.quant,
+            0
+        );
+        const finalValue = totalValue - discount;
+
         SellModel.create({
             customerName,
             phoneNumber,
             sellDate,
             values,
+            voucher,
+            finalValue,
         })
             .then(() => {
                 res.status(200).json({
@@ -553,10 +572,30 @@ SellRoutes.put(
     "/update/:id",
     limiter,
     requireRole(Role.Employee),
-    (req: Request, res: Response) => {
-        SellModel.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-        })
+    async (req: Request, res: Response) => {
+        const { voucher, values } = req.body;
+        let discount = 0;
+
+        if (voucher) {
+            const voucherDoc = await VoucherModel.findById(voucher);
+            if (voucherDoc) {
+                discount = voucherDoc.value;
+            }
+        }
+
+        const totalValue = values.reduce(
+            (acc, item) => acc + item.price * item.quant,
+            0
+        );
+        const finalValue = totalValue - discount;
+
+        SellModel.findByIdAndUpdate(
+            req.params.id,
+            { ...req.body, finalValue },
+            {
+                new: true,
+            }
+        )
             .then((sellItem) => {
                 if (!sellItem) {
                     res.status(404).json({
