@@ -58,9 +58,12 @@ VoucherRoutes.get(
             res.status(200).json({
                 result: "success",
                 vouchers,
-                totalPages: Math.ceil(count / limit),
-                currentPage: page,
-                totalItems: count,
+                pagination: {
+                    total: count,
+                    limit,
+                    page,
+                    pages: Math.ceil(count / limit),
+                },
             });
         } catch (err) {
             handleError(err, res);

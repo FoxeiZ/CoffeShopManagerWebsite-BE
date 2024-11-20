@@ -449,9 +449,12 @@ CustomerRoutes.get(
         res.status(200).json({
             result: "success",
             customers,
-            totalPages: Math.ceil(count / limit),
-            currentPage: page,
-            totalItems: count,
+            pagination: {
+                total: count,
+                page,
+                limit,
+                pages: Math.ceil(count / limit),
+            },
         });
     }
 );
