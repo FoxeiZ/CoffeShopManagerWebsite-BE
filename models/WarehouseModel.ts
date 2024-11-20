@@ -2,22 +2,15 @@ import mongoose, { Schema } from "mongoose";
 
 interface IWarehouseItem {
     name: string;
-    updateName?: string;
     price: number;
-    updatePrice?: number;
     quant: number;
-    updateQuant?: number;
     unit: string;
-    updateUnit?: string;
 }
 
 interface IWarehouse {
-    customerName: string;
-    updateCustomerName?: string;
+    supplierName: string;
     phoneNumber: string;
-    updatePhoneNumber?: string;
     importDate: string;
-    updateImportDate?: string;
     values: IWarehouseItem[];
 }
 
@@ -41,7 +34,7 @@ const WarehouseItemSchema = new Schema<IWarehouseItem>({
 });
 
 const WarehouseSchema = new Schema<IWarehouse>({
-    customerName: {
+    supplierName: {
         type: String,
         required: true,
     },
