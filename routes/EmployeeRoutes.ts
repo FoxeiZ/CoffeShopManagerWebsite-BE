@@ -187,6 +187,10 @@ EmployeeRoutes.post(
             "isActive",
             "isVerified",
             "isFirstTime",
+            "birthDate",
+            "sex",
+            "address",
+            "checkins",
         ];
         if (checkEmptyFields(requiredFields, req.body)) {
             res.status(400).json({
@@ -205,6 +209,10 @@ EmployeeRoutes.post(
             isActive,
             isVerified,
             isFirstTime,
+            birthDate,
+            sex,
+            address,
+            checkins,
         } = req.body;
 
         EmployeeModel.findOne({ email }).then((employee) => {
@@ -226,6 +234,10 @@ EmployeeRoutes.post(
             isActive,
             isVerified,
             isFirstTime,
+            birthDate,
+            sex,
+            address,
+            checkins,
         });
         employee
             .save()
@@ -237,6 +249,7 @@ EmployeeRoutes.post(
                 });
             })
             .catch((err) => {
+                console.log(err);
                 res.status(500).json({
                     result: "error",
                     message: "Failed to add employee",
@@ -318,7 +331,7 @@ EmployeeRoutes.get(
 
 /**
  * @swagger
- * /employee/{id}:
+ * /employee/get/{id}:
  *   get:
  *     summary: Get employee by id
  *     description: Get employee by id
@@ -403,7 +416,7 @@ EmployeeRoutes.get(
  *                       example: Something went wrong
  */
 EmployeeRoutes.get(
-    "/:id",
+    "/get/:id",
     limiter,
     requireRole(Role.Employee),
     async (req: Request, res: Response) => {
@@ -760,27 +773,37 @@ EmployeeRoutes.get(
     limiter,
     requirePermission(Permission.VIEW_EMPLOYEES),
     async (req: Request, res: Response) => {
-        const [page, limit] = [
-            parseInt(req.query.page as string, 10),
-            parseInt(req.query.limit as string, 10),
-        ];
-        const skipIndex = (page - 1) * limit;
-
-        if (isNaN(page) || isNaN(limit)) {
-            res.status(400).json({
-                result: "error",
-                message: "Page and limit must be numbers",
-            });
-            return;
-        }
         try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+
+            if (page < 1 || limit < 1) {
+                res.status(400).json({
+                    result: "error",
+                    message: "Page and limit must be positive numbers",
+                });
+                return;
+            }
+
+            const skipIndex = (page - 1) * limit;
+
             const employees = await EmployeeModel.find()
                 .skip(skipIndex)
                 .limit(limit)
                 .exec();
+
+            console.log(employees);
+            const total = await EmployeeModel.countDocuments();
+
             res.status(200).json({
                 result: "success",
                 employees,
+                pagination: {
+                    total,
+                    page,
+                    limit,
+                    pages: Math.ceil(total / limit),
+                },
             });
         } catch (err) {
             handleError(err, res);
