@@ -12,6 +12,7 @@ import EmployeeRoutes from "./routes/EmployeeRoutes";
 import SellRoutes from "./routes/SellRoutes";
 import ProductRoutes from "./routes/ProductRoutes";
 import WarehouseRoutes from "./routes/WarehouseRoutes";
+import SupplierRoutes from "./routes/SupplierRoutes";
 
 dotenv.config();
 
@@ -42,6 +43,11 @@ const specs = swaggerJsdoc({
                 },
             },
         },
+        security: [
+            {
+                bearerAuth: [],
+            },
+        ],
     },
     servers: [
         {
@@ -70,6 +76,7 @@ app.use("/employee", EmployeeRoutes);
 app.use("/product", ProductRoutes);
 app.use("/sell", SellRoutes);
 app.use("/warehouse", WarehouseRoutes);
+app.use("/supplier", SupplierRoutes);
 
 console.log(
     `mongodb${
