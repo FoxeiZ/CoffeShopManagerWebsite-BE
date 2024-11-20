@@ -13,6 +13,7 @@ import SellRoutes from "./routes/SellRoutes";
 import ProductRoutes from "./routes/ProductRoutes";
 import WarehouseRoutes from "./routes/WarehouseRoutes";
 import SupplierRoutes from "./routes/SupplierRoutes";
+import MenuRoutes from "./routes/MenuRoutes";
 
 dotenv.config();
 
@@ -77,6 +78,7 @@ app.use("/product", ProductRoutes);
 app.use("/sell", SellRoutes);
 app.use("/warehouse", WarehouseRoutes);
 app.use("/supplier", SupplierRoutes);
+app.use("/menu", MenuRoutes);
 
 console.log(
     `mongodb${
