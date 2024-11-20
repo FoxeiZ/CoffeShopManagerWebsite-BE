@@ -102,18 +102,30 @@ CustomerRoutes.post(
     limiter,
     requireRole(Role.Employee),
     (req: Request, res: Response) => {
-        const requiredFields = ["name", "phoneNumber"];
+        const requiredFields = [
+            "name",
+            "email",
+            "phoneNumber",
+            "birthDate",
+            "sex",
+            "address",
+        ];
         if (checkEmptyFields(requiredFields, req.body)) {
+            console.log(req.body);
             res.status(400).json({
                 result: "error",
                 message: "Missing required fields",
             });
             return;
         }
-        const { name, phoneNumber } = req.body;
+        const { name, email, phoneNumber, birthDate, sex, address } = req.body;
         const customer = new CustomerModel({
             name,
+            email,
             phoneNumber,
+            birthDate,
+            sex,
+            address,
         });
         customer
             .save()
@@ -125,7 +137,7 @@ CustomerRoutes.post(
                 });
             })
             .catch((error) => {
-                handleError(res, error);
+                handleError(error, res);
             });
     }
 );
