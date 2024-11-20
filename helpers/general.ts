@@ -1,4 +1,4 @@
-function checkEmptyFields(source: any, requiredFields: string[]) {
+function checkEmptyFields(requiredFields: string[], source: any) {
     if (!source) {
         return true;
     }
