@@ -91,7 +91,7 @@ WarehouseRoutes.get("/", (res: Response) => {
  *           schema:
  *             type: object
  *             properties:
- *               customerName:
+ *               supplierName:
  *                 type: string
  *                 example: Jane Doe
  *               phoneNumber:
@@ -143,7 +143,7 @@ WarehouseRoutes.get("/", (res: Response) => {
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: "Missing required fields: customerName, phoneNumber, importDate, values"
+ *                   example: "Missing required fields: supplierName, phoneNumber, importDate, values"
  */
 WarehouseRoutes.post(
     "/add",
@@ -151,13 +151,13 @@ WarehouseRoutes.post(
     requireRole(Role.WarehouseManager),
     (req: Request, res: Response) => {
         const requiredFields = [
-            "customerName",
+            "supplierName",
             "phoneNumber",
             "importDate",
             "values",
         ];
 
-        if (checkEmptyFields(req.body, requiredFields)) {
+        if (checkEmptyFields(requiredFields, req.body)) {
             res.status(400).json({
                 result: "error",
                 message: `Missing required fields: ${requiredFields
@@ -167,9 +167,9 @@ WarehouseRoutes.post(
             return;
         }
 
-        const { customerName, phoneNumber, importDate, values } = req.body;
+        const { supplierName, phoneNumber, importDate, values } = req.body;
         WarehouseModel.create({
-            customerName,
+            supplierName,
             phoneNumber,
             importDate,
             values,
@@ -213,13 +213,13 @@ WarehouseRoutes.post(
  *                 result:
  *                   type: string
  *                   example: success
- *                 exportItem:
+ *                 importItem:
  *                   type: object
  *                   properties:
  *                     _id:
  *                       type: string
  *                       example: 5f9f1c9f336f08617c7e90a1
- *                     customerName:
+ *                     supplierName:
  *                       type: string
  *                       example: John Doe
  *                     phoneNumber:
@@ -265,8 +265,8 @@ WarehouseRoutes.get(
     requireRole(Role.WarehouseManager),
     (req: Request, res: Response) => {
         WarehouseModel.findById(req.params.id)
-            .then((exportItem) => {
-                if (!exportItem) {
+            .then((importItem) => {
+                if (!importItem) {
                     res.status(404).json({
                         result: "error",
                         message: "Not found",
@@ -275,7 +275,7 @@ WarehouseRoutes.get(
                 }
                 res.status(200).json({
                     result: "success",
-                    exportItem,
+                    importItem,
                 });
             })
             .catch((err) => handleError(err, res));
@@ -306,7 +306,7 @@ WarehouseRoutes.get(
  *           schema:
  *             type: object
  *             properties:
- *               customerName:
+ *               supplierName:
  *                 type: string
  *                 example: Jane Doe
  *               phoneNumber:
@@ -343,7 +343,7 @@ WarehouseRoutes.get(
  *                 result:
  *                   type: string
  *                   example: success
- *                 exportItem:
+ *                 importItem:
  *                   type: object
  *       404:
  *         description: Warehouse not found
@@ -367,8 +367,8 @@ WarehouseRoutes.put(
         WarehouseModel.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
         })
-            .then((exportItem) => {
-                if (!exportItem) {
+            .then((importItem) => {
+                if (!importItem) {
                     res.status(404).json({
                         result: "error",
                         message: "Not found",
@@ -377,11 +377,11 @@ WarehouseRoutes.put(
                 }
                 updateWarehouseItem(
                     req.params.id as string,
-                    exportItem as IWarehouse
+                    importItem as IWarehouse
                 );
                 res.status(200).json({
                     result: "success",
-                    exportItem,
+                    importItem,
                 });
             })
             .catch((err) => handleError(err, res));
@@ -416,7 +416,7 @@ WarehouseRoutes.put(
  *                 result:
  *                   type: string
  *                   example: success
- *                 exportItem:
+ *                 importItem:
  *                   type: object
  *       404:
  *         description: Warehouse not found
@@ -438,8 +438,8 @@ WarehouseRoutes.delete(
     requireRole(Role.WarehouseManager),
     (req: Request, res: Response) => {
         WarehouseModel.findByIdAndDelete(req.params.id)
-            .then((exportItem) => {
-                if (!exportItem) {
+            .then((importItem) => {
+                if (!importItem) {
                     res.status(404).json({
                         result: "error",
                         message: "Not found",
@@ -447,7 +447,7 @@ WarehouseRoutes.delete(
                 } else {
                     res.status(200).json({
                         result: "success",
-                        exportItem,
+                        importItem,
                     });
                     return;
                 }
@@ -500,7 +500,7 @@ WarehouseRoutes.delete(
  *                       _id:
  *                         type: string
  *                         example: 5f9f1c9f336f08617c7e90a1
- *                       customerName:
+ *                       supplierName:
  *                         type: string
  *                         example: John Doe
  *                       phoneNumber:
@@ -575,7 +575,7 @@ WarehouseRoutes.get(
         }
 
         try {
-            const exportItems = await WarehouseModel.find()
+            const imports = await WarehouseModel.find()
                 .limit(limit)
                 .skip((page - 1) * limit)
                 .exec();
@@ -584,7 +584,7 @@ WarehouseRoutes.get(
 
             res.status(200).json({
                 result: "success",
-                exportItems,
+                imports,
                 totalPages: Math.ceil(count / limit),
                 currentPage: page,
                 totalItems: count,
