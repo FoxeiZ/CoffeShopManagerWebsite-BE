@@ -3,6 +3,7 @@ import mongoose, { Schema, Types } from "mongoose";
 import CheckinModels, { ICheckin, CheckinSchema } from "./CheckinModels";
 
 interface IEmployee {
+    _id: string;
     name: string;
     email: string;
     phoneNumber: string;
@@ -11,6 +12,9 @@ interface IEmployee {
     isActive: boolean;
     isVerified: boolean;
     isFirstTime: boolean;
+    birthDate: string;
+    sex: string;
+    address: string;
     checkins: Types.DocumentArray<ICheckin & Document>;
 }
 
@@ -53,7 +57,18 @@ const EmployeeSchema = new Schema<IEmployee>({
     checkins: {
         type: [CheckinSchema],
         default: [],
-        ref: "Checkin",
+    },
+    birthDate: {
+        type: String,
+        required: true,
+    },
+    sex: {
+        type: String,
+        required: true,
+    },
+    address: {
+        type: String,
+        required: true,
     },
 });
 
