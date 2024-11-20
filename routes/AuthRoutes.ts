@@ -13,6 +13,8 @@ const PasswordTooShort = new BaseError("Password too short", 400);
 const PasswordsNotMatch = new BaseError("Passwords do not match", 400);
 const EmailNotValid = new BaseError("Email not valid", 400);
 const TOSNotAccepted = new BaseError("Please accept TOS", 400);
+const TokenExpired = new BaseError("Token has expired", 401);
+const Unauthorized = new BaseError("Unauthorized", 401);
 
 /**
  * @swagger
@@ -324,6 +326,237 @@ AuthRouter.post("/login", (req: Request, res: Response) => {
             );
         })
         .catch((err) => handleError(err, res));
+});
+
+const InvalidToken = new BaseError("Invalid token", 401);
+
+/**
+ * @swagger
+ * /auth/revoke:
+ *   post:
+ *     summary: Revoke a token
+ *     description: Revoke the provided JWT token.
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *     responses:
+ *       200:
+ *         description: Token revoked successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Token revoked
+ *       401:
+ *         description: Unauthorized, invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Invalid token
+ */
+AuthRouter.post("/revoke", (req: Request, res: Response) => {
+    const { token } = req.body;
+
+    if (!token) {
+        return handleError(InvalidToken, res);
+    }
+
+    const JWT_SECRET = process.env.JWT_SECRET;
+
+    if (!JWT_SECRET) {
+        throw new Error("JWT_SECRET is not defined");
+    }
+
+    jwt.verify(token, JWT_SECRET, (err: Error | null, decoded: any) => {
+        if (err) {
+            return handleError(InvalidToken, res);
+        }
+
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (decoded.exp < currentTime) {
+            return handleError(new BaseError("Token has expired", 401), res);
+        }
+
+        res.json({
+            result: "success",
+            message: "Token revoked",
+        });
+    });
+});
+
+/**
+ * @swagger
+ * /auth/check-token:
+ *   post:
+ *     summary: Check token expiry
+ *     description: Check if the provided JWT token is expired.
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *     responses:
+ *       200:
+ *         description: Token is valid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Token is valid
+ *       401:
+ *         description: Unauthorized, invalid or expired token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Invalid or expired token
+ */
+AuthRouter.post("/check-token", (req: Request, res: Response) => {
+    const { token } = req.body;
+
+    if (!token) {
+        return handleError(InvalidToken, res);
+    }
+
+    const JWT_SECRET = process.env.JWT_SECRET;
+
+    if (!JWT_SECRET) {
+        throw new Error("JWT_SECRET is not defined");
+    }
+
+    jwt.verify(token, JWT_SECRET, (err: Error | null, decoded: any) => {
+        if (err) {
+            return handleError(InvalidToken, res);
+        }
+
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (decoded.exp < currentTime) {
+            return handleError(TokenExpired, res);
+        }
+
+        res.json({
+            result: "success",
+            message: "Token is valid",
+        });
+    });
+});
+
+/**
+ * @swagger
+ * /auth/me:
+ *   get:
+ *     summary: Get current logged-in user
+ *     description: Return the current logged-in user's information.
+ *     tags:
+ *       - Auth
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Current user information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: string
+ *                       example: johndoe@example.com
+ *                     name:
+ *                       type: string
+ *                       example: John Doe
+ *                     role:
+ *                       type: string
+ *                       example: user
+ *       401:
+ *         description: Unauthorized, invalid or expired token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ */
+AuthRouter.get("/me", (req: Request, res: Response) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return handleError(Unauthorized, res);
+    }
+
+    const token = authHeader.split(" ")[1];
+    const JWT_SECRET = process.env.JWT_SECRET;
+
+    if (!JWT_SECRET) {
+        throw new Error("JWT_SECRET is not defined");
+    }
+
+    jwt.verify(token, JWT_SECRET, (err: Error | null, decoded: any) => {
+        if (err) {
+            return handleError(Unauthorized, res);
+        }
+
+        res.json({
+            result: "success",
+            data: {
+                email: decoded.email,
+                name: decoded.name,
+                role: decoded.role,
+            },
+        });
+    });
 });
 
 export default AuthRouter;
